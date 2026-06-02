@@ -103,21 +103,30 @@ fn flatten_tasks<'a>(
     }
 }
 
-fn build_task_model(state: &AppState) -> ModelRc<TaskData> {
+// Returns Vec<TaskData> which is Send (all fields are SharedString/f32/bool).
+// Call make_task_model() inside upgrade_in_event_loop to get the ModelRc (Rc-based, !Send).
+fn build_task_vec(state: &AppState) -> Vec<TaskData> {
     let mut items: Vec<TaskData> = Vec::new();
     flatten_tasks(&state.tasks, &state.expanded, 0, &mut items);
+    items
+}
+
+fn make_task_model(items: Vec<TaskData>) -> ModelRc<TaskData> {
     ModelRc::new(Rc::new(VecModel::from(items)))
 }
 
-fn build_project_model(projects: &[Project]) -> ModelRc<ProjectData> {
-    let items: Vec<ProjectData> = projects
+fn build_project_vec(projects: &[Project]) -> Vec<ProjectData> {
+    projects
         .iter()
         .map(|p| ProjectData {
             id: p.id.clone().into(),
             name: p.name.clone().into(),
             color: p.color.clone().into(),
         })
-        .collect();
+        .collect()
+}
+
+fn make_project_model(items: Vec<ProjectData>) -> ModelRc<ProjectData> {
     ModelRc::new(Rc::new(VecModel::from(items)))
 }
 
@@ -313,7 +322,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 w.set_page_title(p.name.clone().into());
                             }
                         }
-                        let model = build_project_model(&st.projects);
+                        let model = make_project_model(build_project_vec(&st.projects));
                         w.set_projects(model);
                     }
 
@@ -321,7 +330,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Ok(task_list) => {
                             let mut st = state.lock().unwrap();
                             st.tasks = task_list;
-                            let model = build_task_model(&st);
+                            let model = make_task_model(build_task_vec(&st));
                             w.set_tasks(model);
                         }
                         Err(e) => {
@@ -348,7 +357,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     if let Ok(updated) = result {
                         let mut st = state.lock().unwrap();
                         replace_task_in_vec(&mut st.tasks, updated);
-                        let model = build_task_model(&st);
+                        let model = make_task_model(build_task_vec(&st));
                         w.set_tasks(model);
                     }
                 });
@@ -362,15 +371,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let ww = window.as_weak();
         window.on_toggle_expand(move |id| {
             let id_str = id.to_string();
-            let mut st = state.lock().unwrap();
-            if st.expanded.contains(&id_str) {
-                st.expanded.remove(&id_str);
-            } else {
-                st.expanded.insert(id_str);
-            }
-            let model = build_task_model(&st);
+            // Build Send-safe Vec before the closure; create ModelRc (Rc, !Send) inside.
+            let task_vec = {
+                let mut st = state.lock().unwrap();
+                if st.expanded.contains(&id_str) {
+                    st.expanded.remove(&id_str);
+                } else {
+                    st.expanded.insert(id_str);
+                }
+                build_task_vec(&st)
+            };
             let _ = ww.upgrade_in_event_loop(move |w| {
-                w.set_tasks(model);
+                w.set_tasks(make_task_model(task_vec));
             });
         });
     }
@@ -431,7 +443,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             Ok(updated) => {
                                 let mut st = state.lock().unwrap();
                                 replace_task_in_vec(&mut st.tasks, updated);
-                                let model = build_task_model(&st);
+                                let model = make_task_model(build_task_vec(&st));
                                 w.set_tasks(model);
                                 w.set_detail_open(false);
                             }
@@ -531,7 +543,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 } else {
                                     st.tasks.push(new_task);
                                 }
-                                let model = build_task_model(&st);
+                                let model = make_task_model(build_task_vec(&st));
                                 w.set_tasks(model);
                                 w.set_add_open(false);
                             }
