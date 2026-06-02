@@ -39,7 +39,7 @@ component NavItem inherits Rectangle {
 
 component ProjectItem inherits Rectangle {
     in property <string> name;
-    in property <string> color;
+    in property <string> dot-color;  // renamed: 'color' is reserved on Rectangle
     in property <bool>   active: false;
 
     callback clicked();
@@ -57,12 +57,11 @@ component ProjectItem inherits Rectangle {
         spacing: 8px;
         alignment: center-start;
 
-        // Colour dot
         Rectangle {
             width: 8px;
             height: 8px;
             border-radius: 4px;
-            background: root.active ? #3b82f6 : #6b7280;
+            background: root.active ? Theme.accent : #6b7280;
         }
         Text {
             text: name;
@@ -128,8 +127,10 @@ export component Sidebar inherits Rectangle {
             }
         }
 
-        // Divider
-        Rectangle { height: 1px; background: Theme.border; margin-top: 8px; margin-bottom: 8px; }
+        // Divider (use padding via a spacer + separator)
+        Rectangle { height: 8px; }
+        Rectangle { height: 1px; background: Theme.border; }
+        Rectangle { height: 8px; }
 
         // Projects section
         VerticalLayout {
@@ -146,9 +147,9 @@ export component Sidebar inherits Rectangle {
             }
 
             for proj in root.projects: ProjectItem {
-                name:   proj.name;
-                color:  proj.color;
-                active: root.active-page == "project:" + proj.id;
+                name:      proj.name;
+                dot-color: proj.color;
+                active:    root.active-page == "project:" + proj.id;
                 clicked => { root.navigate("project:" + proj.id); }
             }
         }
@@ -157,7 +158,9 @@ export component Sidebar inherits Rectangle {
         Rectangle { vertical-stretch: 1; }
 
         // Divider
-        Rectangle { height: 1px; background: Theme.border; margin-bottom: 8px; }
+        Rectangle { height: 8px; }
+        Rectangle { height: 1px; background: Theme.border; }
+        Rectangle { height: 8px; }
 
         // User + logout
         VerticalLayout {
