@@ -1,0 +1,23 @@
+# .NET build artifacts
+server/**/bin/
+server/**/obj/
+
+# Frontend build output
+web/dist/
+web/dist-ssr/
+web/node_modules/
+
+# Secrets / local config
+*.local
+web/.env
+server/OpenPlan.API/appsettings.Local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.user
