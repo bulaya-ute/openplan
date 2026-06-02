@@ -3,24 +3,39 @@ import type { Task, Project } from '../types';
 import * as tasksApi from '../api/tasks';
 import * as projectsApi from '../api/projects';
 
+export function findTaskById(tasks: Task[], id: string): Task | null {
+  for (const task of tasks) {
+    if (task.id === id) return task;
+    const found = findTaskById(task.children, id);
+    if (found) return found;
+  }
+  return null;
+}
+
 interface TasksState {
   tasks: Task[];
   projects: Project[];
   loading: boolean;
   error: string | null;
+  modalTaskId: string | null;
   fetchTasks: (view: string, projectId?: string) => Promise<void>;
   fetchProjects: () => Promise<void>;
   tick: (id: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   createTask: (payload: Parameters<typeof tasksApi.createTask>[0]) => Promise<Task>;
   updateTask: (id: string, payload: Parameters<typeof tasksApi.updateTask>[1]) => Promise<void>;
+  openTaskModal: (id: string) => void;
+  closeTaskModal: () => void;
 }
 
-export const useTasksStore = create<TasksState>((set, get) => ({
+export const useTasksStore = create<TasksState>((set, _get) => ({
   tasks: [],
   projects: [],
   loading: false,
   error: null,
+  modalTaskId: null,
+  openTaskModal: (id) => set({ modalTaskId: id }),
+  closeTaskModal: () => set({ modalTaskId: null }),
 
   fetchTasks: async (view, projectId) => {
     set({ loading: true, error: null });

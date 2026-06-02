@@ -32,7 +32,7 @@ export default function Login() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Sign in</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
           Don't have an account?{' '}
-          <Link to="/register" className="text-indigo-600 hover:underline">Create one</Link>
+          <Link to="/register" className="text-blue-600 hover:underline">Create one</Link>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -40,20 +40,20 @@ export default function Login() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
             <input
               type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
             <input
               type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <button
             type="submit" disabled={loading}
-            className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>

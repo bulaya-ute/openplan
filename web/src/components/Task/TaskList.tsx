@@ -24,20 +24,25 @@ export default function TaskList({ tasks, loading, title, projectId }: Props) {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
-      <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">{title}</h1>
+      <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-6">{title}</h1>
 
       <div className="space-y-0.5">
         {tasks.map((task) => (
           <TaskRow key={task.id} task={task} />
         ))}
+        {tasks.length === 0 && (
+          <p className="text-sm text-gray-400 py-4">No tasks here.</p>
+        )}
       </div>
 
       {adding ? (
-        <AddTaskForm projectId={projectId} onClose={() => setAdding(false)} />
+        <div className="mt-2">
+          <AddTaskForm projectId={projectId} onClose={() => setAdding(false)} />
+        </div>
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="mt-3 flex items-center gap-2 text-sm text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+          className="mt-4 flex items-center gap-2 text-sm text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
         >
           <Plus size={15} /> Add task
         </button>

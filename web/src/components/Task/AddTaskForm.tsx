@@ -15,7 +15,16 @@ export default function AddTaskForm({ parentId, projectId, depth = 0, onClose }:
   const [title, setTitle] = useState('');
   const [taskType, setTaskType] = useState<TaskType>('Parallel');
   const [priority, setPriority] = useState<Priority>('P4');
-  const [dueAt, setDueAt] = useState(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
+  const [startAt, setStartAt] = useState(() => {
+    const d = new Date();
+    d.setHours(9, 0, 0, 0);
+    return format(d, "yyyy-MM-dd'T'HH:mm");
+  });
+  const [dueAt, setDueAt] = useState(() => {
+    const d = new Date();
+    d.setHours(17, 0, 0, 0);
+    return format(d, "yyyy-MM-dd'T'HH:mm");
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,11 +34,6 @@ export default function AddTaskForm({ parentId, projectId, depth = 0, onClose }:
     setSaving(true);
     setError('');
     try {
-      const now = new Date();
-      const start = new Date(now);
-      start.setHours(9, 0, 0, 0);
-      const due = new Date(dueAt);
-
       await createTask({
         title: title.trim(),
         parentId,
@@ -37,8 +41,8 @@ export default function AddTaskForm({ parentId, projectId, depth = 0, onClose }:
         taskType,
         weight: 1,
         priority,
-        startAt: start.toISOString(),
-        dueAt: due.toISOString(),
+        startAt: new Date(startAt).toISOString(),
+        dueAt: new Date(dueAt).toISOString(),
         sortOrder: 0,
       });
       onClose();
@@ -49,10 +53,12 @@ export default function AddTaskForm({ parentId, projectId, depth = 0, onClose }:
     }
   };
 
+  const fieldClass = 'text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-blue-500/30';
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-2 px-3 py-2 mx-2 mb-2 border border-dashed border-gray-300 dark:border-gray-700 rounded-md"
+      className="flex flex-col gap-2.5 px-3 py-3 mx-2 mb-2 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900/50"
       style={{ marginLeft: `${depth * 20 + 8}px` }}
     >
       <input
@@ -62,40 +68,65 @@ export default function AddTaskForm({ parentId, projectId, depth = 0, onClose }:
         placeholder="Task title"
         className="text-sm bg-transparent outline-none placeholder-gray-400 text-gray-900 dark:text-white"
       />
+
       <div className="flex flex-wrap gap-2 items-center">
         <select
           value={taskType}
           onChange={(e) => setTaskType(e.target.value as TaskType)}
-          className="text-xs border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300"
+          className={fieldClass}
         >
           <option value="Parallel">Parallel</option>
           <option value="Sequential">Sequential</option>
         </select>
+
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value as Priority)}
-          className="text-xs border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300"
+          className={fieldClass}
         >
           <option value="P4">No priority</option>
           <option value="P3">P3 — Medium</option>
           <option value="P2">P2 — High</option>
           <option value="P1">P1 — Urgent</option>
         </select>
-        <input
-          type="datetime-local"
-          value={dueAt}
-          onChange={(e) => setDueAt(e.target.value)}
-          className="text-xs border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300"
-        />
       </div>
+
+      <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-gray-400">Start</span>
+          <input
+            type="datetime-local"
+            value={startAt}
+            onChange={(e) => setStartAt(e.target.value)}
+            className={fieldClass}
+          />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-gray-400">Due</span>
+          <input
+            type="datetime-local"
+            value={dueAt}
+            onChange={(e) => setDueAt(e.target.value)}
+            className={fieldClass}
+          />
+        </div>
+      </div>
+
       {error && <p className="text-xs text-red-500">{error}</p>}
+
       <div className="flex gap-2">
-        <button type="submit" disabled={saving}
-          className="text-xs px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-medium disabled:opacity-50">
-          Add task
+        <button
+          type="submit"
+          disabled={saving}
+          className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
+        >
+          {saving ? 'Adding…' : 'Add task'}
         </button>
-        <button type="button" onClick={onClose}
-          className="text-xs px-3 py-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-xs px-3 py-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+        >
           Cancel
         </button>
       </div>

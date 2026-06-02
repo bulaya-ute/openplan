@@ -1,9 +1,13 @@
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth';
+import { useTasksStore } from '../../store/tasks';
 import Sidebar from './Sidebar';
+import TaskDetailModal from '../Task/TaskDetailModal';
 
 export default function AppLayout() {
   const { user } = useAuthStore();
+  const { modalTaskId, closeTaskModal } = useTasksStore();
+
   if (!user) return <Navigate to="/login" replace />;
 
   return (
@@ -12,6 +16,9 @@ export default function AppLayout() {
       <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
+      {modalTaskId && (
+        <TaskDetailModal taskId={modalTaskId} onClose={closeTaskModal} />
+      )}
     </div>
   );
 }
