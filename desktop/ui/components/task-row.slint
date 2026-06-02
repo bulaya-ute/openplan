@@ -9,142 +9,158 @@ export component TaskRow inherits Rectangle {
     callback toggle-expand(string);
     callback open-detail(string);
 
-    height: Theme.row-h;
-    background: ta.has-hover ? Theme.bg-hover : Theme.bg;
-    animate background { duration: 80ms; }
+    // Card-bottom rows include an 8px transparent gap below the content.
+    height: Theme.row-h + (root.task.is-card-bottom ? 8px : 0);
+    background: transparent; // gap area shows page background
 
-    // Computed
-    property <bool> is-done:      task.status == "Completed";
-    property <bool> is-cancelled: task.status == "Cancelled";
-    property <bool> is-terminal:  is-done || is-cancelled;
+    // ── Computed properties ────────────────────────────────────────
+    property <bool>  is-done:       task.status == "Completed";
+    property <bool>  is-cancelled:  task.status == "Cancelled";
+    property <bool>  is-terminal:   is-done || is-cancelled;
     property <color> priority-color:
         task.priority == "P1" ? Theme.p1 :
         task.priority == "P2" ? Theme.p2 :
         task.priority == "P3" ? Theme.p3 : Theme.p4;
 
-    // Main touch area (open detail)
-    ta := TouchArea {
-        clicked => { root.open-detail(root.task.id); }
-    }
+    // ── Content card ───────────────────────────────────────────────
+    content := Rectangle {
+        x: 0; y: 0;
+        width: parent.width;
+        height: Theme.row-h;
+        background: ta.has-hover ? Theme.bg-hover : Theme.bg-card;
+        animate background { duration: 80ms; }
 
-    HorizontalLayout {
-        padding-left: 6px + task.depth * 20px;
-        padding-right: 8px;
-        spacing: 0px;
-        alignment: start;
+        // Per-corner radius — assembles the card shape across rows
+        border-top-left-radius:    root.task.is-card-top    ? Theme.radius-lg : 0;
+        border-top-right-radius:   root.task.is-card-top    ? Theme.radius-lg : 0;
+        border-bottom-left-radius: root.task.is-card-bottom ? Theme.radius-lg : 0;
+        border-bottom-right-radius: root.task.is-card-bottom ? Theme.radius-lg : 0;
 
-        // Expand toggle or spacer
-        Rectangle {
-            width: 24px;
-            height: Theme.row-h;
+        // Main touch area (open detail)
+        ta := TouchArea {
+            width: parent.width;
+            height: parent.height;
+            clicked => { root.open-detail(root.task.id); }
+        }
 
-            if root.task.has-children && root.task.depth == 0: expand-ta := TouchArea {
-                clicked => {
-                    root.toggle-expand(root.task.id);
-                    // stop propagation by consuming the event
+        HorizontalLayout {
+            padding-left: 6px + root.task.depth * 20px;
+            padding-right: 8px;
+            spacing: 0px;
+            alignment: start;
+
+            // Expand toggle or spacer
+            Rectangle {
+                width: 24px;
+                height: Theme.row-h;
+
+                if root.task.has-children && root.task.depth == 0: expand-ta := TouchArea {
+                    clicked => { root.toggle-expand(root.task.id); }
+                    Rectangle {
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 4px;
+                        background: expand-ta.has-hover ? Theme.border : transparent;
+                        Text {
+                            text: root.task.is-expanded ? "▾" : "▸";
+                            font-size: 10px;
+                            color: Theme.text-muted;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
                 }
+            }
+
+            // Checkbox / tick button
+            check-ta := TouchArea {
+                width: 28px;
+                height: Theme.row-h;
+                clicked => { root.tick(root.task.id); }
+
                 Rectangle {
                     width: 16px;
                     height: 16px;
-                    border-radius: 4px;
-                    background: expand-ta.has-hover ? Theme.border : transparent;
-                    Text {
-                        text: root.task.is-expanded ? "▾" : "▸";
-                        font-size: 10px;
-                        color: Theme.text-muted;
+                    border-radius: 8px;
+                    border-width: 1.5px;
+                    border-color: root.is-done      ? Theme.done
+                                : root.is-cancelled ? Theme.cancelled
+                                : check-ta.has-hover ? root.priority-color
+                                : Theme.border;
+                    background: root.is-done      ? Theme.done
+                              : root.is-cancelled ? Theme.cancelled
+                              : transparent;
+                    animate background    { duration: 120ms; }
+                    animate border-color  { duration: 120ms; }
+
+                    if root.is-terminal: Text {
+                        text: root.is-done ? "✓" : "✕";
+                        font-size: 9px;
+                        color: Theme.text-on-accent;
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }
                 }
             }
-        }
 
-        // Checkbox / tick button
-        check-ta := TouchArea {
-            width: 28px;
-            height: Theme.row-h;
-            clicked => {
-                root.tick(root.task.id);
-                // stop propagation
-            }
-
+            // Priority dot + gap
             Rectangle {
-                width: 16px;
-                height: 16px;
-                border-radius: 8px;
-                border-width: 1.5px;
-                border-color: root.is-done ? Theme.done
-                            : root.is-cancelled ? Theme.cancelled
-                            : check-ta.has-hover ? root.priority-color
-                            : Theme.border;
-                background: root.is-done ? Theme.done
-                          : root.is-cancelled ? Theme.cancelled
-                          : transparent;
-                animate background { duration: 120ms; }
-                animate border-color { duration: 120ms; }
-
-                if root.is-terminal: Text {
-                    text: root.is-done ? "✓" : "✕";
-                    font-size: 9px;
-                    color: Theme.text-on-accent;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
+                width: 6px;
+                height: 6px;
+                border-radius: 3px;
+                background: root.is-terminal ? Theme.text-muted : root.priority-color;
             }
-        }
+            Rectangle { width: 8px; }
 
-        // Priority dot + gap
-        Rectangle {
-            width: 6px;
-            height: 6px;
-            border-radius: 3px;
-            background: root.is-terminal ? Theme.text-muted : root.priority-color;
-        }
-        Rectangle { width: 8px; }
-
-        // Title
-        Text {
-            text: root.task.title;
-            font-size: 13px;
-            color: root.is-terminal ? Theme.text-muted : Theme.text;
-            font-italic: root.is-cancelled;
-            vertical-alignment: center;
-            horizontal-stretch: 1;
-            overflow: elide;
-        }
-
-        // Progress ring (for parent tasks with children)
-        if root.task.has-children && !root.is-terminal: Rectangle {
-            width: 36px;
-            height: Theme.row-h;
-            HorizontalLayout {
-                alignment: center;
-                Text {
-                    text: root.task.completed-child-count + "/" + root.task.child-count;
-                    font-size: 10px;
-                    color: Theme.text-muted;
-                    vertical-alignment: center;
-                }
-            }
-        }
-
-        // Due date
-        if root.task.due-at != "": Rectangle {
-            width: 80px;
+            // Title
             Text {
-                text: root.task.due-at;
-                font-size: 11px;
-                color: Theme.text-muted;
-                horizontal-alignment: right;
+                text: root.task.title;
+                font-size: 13px;
+                color: root.is-terminal ? Theme.text-muted : Theme.text;
+                font-italic: root.is-cancelled;
                 vertical-alignment: center;
+                horizontal-stretch: 1;
+                overflow: elide;
+            }
+
+            // Child count badge
+            if root.task.has-children && !root.is-terminal: Rectangle {
+                width: 36px;
+                height: Theme.row-h;
+                HorizontalLayout {
+                    alignment: center;
+                    Text {
+                        text: root.task.completed-child-count + "/" + root.task.child-count;
+                        font-size: 10px;
+                        color: Theme.text-muted;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // Due date
+            if root.task.due-at != "": Rectangle {
+                width: 80px;
+                Text {
+                    text: root.task.due-at;
+                    font-size: 11px;
+                    color: Theme.text-muted;
+                    horizontal-alignment: right;
+                    vertical-alignment: center;
+                }
             }
         }
-    }
 
-    // Bottom border
-    Rectangle {
-        y: parent.height - 1px;
-        height: 1px;
-        background: Theme.border;
+        // ── Card borders ───────────────────────────────────────────
+        // Left edge
+        Rectangle { x: 0; y: 0; width: 1px; height: parent.height; background: Theme.border-card; }
+        // Right edge
+        Rectangle { x: parent.width - 1px; y: 0; width: 1px; height: parent.height; background: Theme.border-card; }
+        // Top border — card-top only
+        if root.task.is-card-top: Rectangle { x: 0; y: 0; width: parent.width; height: 1px; background: Theme.border-card; }
+        // Bottom border — card-bottom only
+        if root.task.is-card-bottom: Rectangle { x: 0; y: parent.height - 1px; width: parent.width; height: 1px; background: Theme.border-card; }
+        // Row separator inside card (between children)
+        if !root.task.is-card-top: Rectangle { x: 1px; y: 0; width: parent.width - 2px; height: 1px; background: Theme.border; }
     }
 }

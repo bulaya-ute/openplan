@@ -10,6 +10,9 @@ pub struct Config {
     pub server_url: String,
     pub token: Option<String>,
     pub display_name: Option<String>,
+    /// 0 = system, 1 = light, 2 = dark
+    #[serde(default)]
+    pub theme_mode: i32,
 }
 
 impl Default for Config {
@@ -18,6 +21,7 @@ impl Default for Config {
             server_url: DEFAULT_SERVER_URL.to_string(),
             token: None,
             display_name: None,
+            theme_mode: 0,
         }
     }
 }

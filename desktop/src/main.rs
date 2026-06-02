@@ -85,6 +85,21 @@ fn task_to_slint(task: &Task, depth: i32, is_expanded: bool) -> TaskData {
         is_expanded,
         weight: task.weight as f32,
         project_id: task.project_id.clone().unwrap_or_default().into(),
+        is_card_top: false,    // set by set_card_boundaries
+        is_card_bottom: false, // set by set_card_boundaries
+    }
+}
+
+// Post-processes a flat task list to mark card top/bottom boundaries.
+// A "card" spans a depth-0 row plus all immediately following depth>0 rows.
+fn set_card_boundaries(items: &mut Vec<TaskData>) {
+    let len = items.len();
+    for i in 0..len {
+        let is_root = items[i].depth == 0;
+        let next_is_root_or_end = i + 1 >= len || items[i + 1].depth == 0;
+
+        items[i].is_card_top = is_root;
+        items[i].is_card_bottom = next_is_root_or_end;
     }
 }
 
@@ -108,6 +123,7 @@ fn flatten_tasks<'a>(
 fn build_task_vec(state: &AppState) -> Vec<TaskData> {
     let mut items: Vec<TaskData> = Vec::new();
     flatten_tasks(&state.tasks, &state.expanded, 0, &mut items);
+    set_card_boundaries(&mut items);
     items
 }
 
@@ -184,6 +200,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let is_authed = config.token.is_some();
     let display_name = config.display_name.clone().unwrap_or_default();
     let server_url = config.server_url.clone();
+    let theme_mode = config.theme_mode;
 
     let state: Arc<Mutex<AppState>> = Arc::new(Mutex::new(AppState::new(config)));
 
@@ -192,6 +209,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Set initial property values
     window.set_server_url(server_url.into());
     window.set_display_name(display_name.into());
+    window.set_theme_mode(theme_mode);
     if is_authed {
         window.set_current_page("today".into());
     }
@@ -255,6 +273,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 w.set_tasks(ModelRc::default());
                 w.set_projects(ModelRc::default());
             });
+        });
+    }
+
+    // ── set-theme ─────────────────────────────────────────────────
+    {
+        let state = state.clone();
+        window.on_set_theme(move |mode| {
+            let mut st = state.lock().unwrap();
+            st.config.theme_mode = mode;
+            st.config.save().ok();
         });
     }
 

@@ -18,6 +18,8 @@ export struct TaskData {
     is-expanded:           bool,
     weight:                float,
     project-id:            string,
+    is-card-top:           bool,   // true for depth-0 tasks (top of visual card)
+    is-card-bottom:        bool,   // true for last row in card group
 }
 
 export struct ProjectData {

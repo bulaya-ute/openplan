@@ -1,5 +1,5 @@
-import { LineEdit, Button } from "std-widgets.slint";
 import { Theme } from "../theme.slint";
+import { StyledInput } from "styled-input.slint";
 
 export component LoginPage inherits Rectangle {
     background: Theme.bg-secondary;
@@ -7,8 +7,8 @@ export component LoginPage inherits Rectangle {
     in-out property <string> server-url: "http://localhost:5000/api/v1";
     in-out property <string> email;
     in-out property <string> password;
-    in property  <string> error: "";
-    in property  <bool>   loading: false;
+    in property  <string>    error: "";
+    in property  <bool>      loading: false;
 
     callback submit(string, string, string); // server-url, email, password
 
@@ -27,12 +27,41 @@ export component LoginPage inherits Rectangle {
                     // Header
                     VerticalLayout {
                         spacing: 4px;
-                        Text {
-                            text: "OpenPlan";
-                            font-size: 22px;
-                            font-weight: 700;
-                            color: Theme.accent;
+
+                        // Logo mark + wordmark
+                        HorizontalLayout {
+                            spacing: 10px;
+                            alignment: start;
+
+                            // Two-pill logo (offset staircase)
+                            Rectangle {
+                                width: 32px;
+                                height: 32px;
+                                // Top-left pill (dark blue)
+                                Rectangle {
+                                    x: 0px; y: 4px;
+                                    width: 18px; height: 8px;
+                                    border-radius: 4px;
+                                    background: #1d4ed8;
+                                }
+                                // Bottom-right pill (light blue)
+                                Rectangle {
+                                    x: 12px; y: 18px;
+                                    width: 18px; height: 8px;
+                                    border-radius: 4px;
+                                    background: #60a5fa;
+                                }
+                            }
+
+                            Text {
+                                text: "OpenPlan";
+                                font-size: 22px;
+                                font-weight: 700;
+                                color: Theme.accent;
+                                vertical-alignment: center;
+                            }
                         }
+
                         Text {
                             text: "Sign in to your workspace";
                             font-size: 13px;
@@ -42,12 +71,12 @@ export component LoginPage inherits Rectangle {
 
                     // Card body
                     Rectangle {
-                        background: Theme.bg;
+                        background: Theme.bg-card;
                         border-radius: Theme.radius-lg;
                         border-width: 1px;
                         border-color: Theme.border;
                         drop-shadow-blur: 12px;
-                        drop-shadow-color: #00000012;
+                        drop-shadow-color: #00000018;
                         drop-shadow-offset-y: 2px;
 
                         VerticalLayout {
@@ -63,10 +92,9 @@ export component LoginPage inherits Rectangle {
                                     font-weight: 600;
                                     color: Theme.text-secondary;
                                 }
-                                url-edit := LineEdit {
-                                    text: root.server-url;
+                                StyledInput {
+                                    text <=> root.server-url;
                                     placeholder-text: "http://localhost:5000/api/v1";
-                                    edited => { root.server-url = self.text; }
                                 }
                             }
 
@@ -79,10 +107,9 @@ export component LoginPage inherits Rectangle {
                                     font-weight: 600;
                                     color: Theme.text-secondary;
                                 }
-                                email-edit := LineEdit {
-                                    text: root.email;
+                                StyledInput {
+                                    text <=> root.email;
                                     placeholder-text: "you@example.com";
-                                    edited => { root.email = self.text; }
                                 }
                             }
 
@@ -95,11 +122,10 @@ export component LoginPage inherits Rectangle {
                                     font-weight: 600;
                                     color: Theme.text-secondary;
                                 }
-                                pass-edit := LineEdit {
-                                    text: root.password;
+                                StyledInput {
+                                    text <=> root.password;
                                     placeholder-text: "••••••••";
                                     input-type: InputType.password;
-                                    edited => { root.password = self.text; }
                                     accepted => {
                                         if (!root.loading) {
                                             root.submit(root.server-url, root.email, root.password);

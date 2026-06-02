@@ -1,0 +1,96 @@
+import { Theme } from "../theme.slint";
+
+// Drop-in replacement for LineEdit with full theme support.
+export component StyledInput inherits Rectangle {
+    in-out property <string> text: "";
+    in property <string>     placeholder-text: "";
+    in property <InputType>  input-type: InputType.text;
+    in property <bool>       enabled: true;
+
+    callback edited(string);
+    callback accepted();
+
+    forward-focus: ti;
+    height: 36px;
+    border-radius: Theme.radius-sm;
+    border-width: 1.5px;
+    border-color: ti.has-focus ? Theme.border-focus : Theme.border;
+    background: root.enabled ? Theme.bg-input : Theme.bg-hover;
+    animate border-color { duration: 80ms; }
+
+    // Placeholder text (shown when empty and not focused)
+    if root.text == "" && !ti.has-focus: Text {
+        x: 10px;
+        y: 0;
+        width: parent.width - 20px;
+        height: parent.height;
+        text: root.placeholder-text;
+        color: Theme.text-muted;
+        font-size: 13px;
+        vertical-alignment: center;
+    }
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+
+        ti := TextInput {
+            text <=> root.text;
+            input-type: root.input-type;
+            font-size: 13px;
+            color: Theme.text;
+            selection-background-color: Theme.accent;
+            selection-foreground-color: Theme.text-on-accent;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+            single-line: true;
+            enabled: root.enabled;
+
+            edited => { root.edited(self.text); }
+            accepted => { root.accepted(); }
+        }
+    }
+}
+
+// Drop-in replacement for TextEdit with full theme support.
+// Callers control height by setting `height:` on the element directly.
+export component StyledTextArea inherits Rectangle {
+    in-out property <string> text: "";
+    in property <string>     placeholder-text: "";
+
+    callback edited(string);
+
+    forward-focus: ti;
+    height: 80px; // default; override per-use with height:
+    border-radius: Theme.radius-sm;
+    border-width: 1.5px;
+    border-color: ti.has-focus ? Theme.border-focus : Theme.border;
+    background: Theme.bg-input;
+    clip: true;
+    animate border-color { duration: 80ms; }
+
+    if root.text == "" && !ti.has-focus: Text {
+        x: 10px;
+        y: 8px;
+        width: parent.width - 20px;
+        text: root.placeholder-text;
+        color: Theme.text-muted;
+        font-size: 13px;
+    }
+
+    HorizontalLayout {
+        padding: 8px;
+
+        ti := TextInput {
+            text <=> root.text;
+            font-size: 13px;
+            color: Theme.text;
+            selection-background-color: Theme.accent;
+            selection-foreground-color: Theme.text-on-accent;
+            horizontal-stretch: 1;
+            wrap: word-wrap;
+
+            edited => { root.edited(self.text); }
+        }
+    }
+}

@@ -10,7 +10,7 @@ component NavItem inherits Rectangle {
 
     height: 34px;
     border-radius: Theme.radius-sm;
-    background: active ? Theme.accent-light : transparent;
+    background: active ? Theme.accent-light : (ta.has-hover ? Theme.bg-hover : transparent);
     animate background { duration: 100ms; }
 
     ta := TouchArea { clicked => { root.clicked(); } }
@@ -39,14 +39,14 @@ component NavItem inherits Rectangle {
 
 component ProjectItem inherits Rectangle {
     in property <string> name;
-    in property <string> dot-color;  // renamed: 'color' is reserved on Rectangle
+    in property <string> dot-color;
     in property <bool>   active: false;
 
     callback clicked();
 
     height: 30px;
     border-radius: Theme.radius-sm;
-    background: active ? Theme.accent-light : transparent;
+    background: active ? Theme.accent-light : (ta.has-hover ? Theme.bg-hover : transparent);
     animate background { duration: 100ms; }
 
     ta := TouchArea { clicked => { root.clicked(); } }
@@ -80,20 +80,44 @@ export component Sidebar inherits Rectangle {
     in property <[ProjectData]> projects;
     in property <string>        active-page;
     in property <string>        display-name;
+    in property <int>           theme-mode: 0; // 0=system 1=light 2=dark
 
     callback navigate(string);
     callback logout();
+    callback toggle-theme();
 
     VerticalLayout {
         padding: 12px;
         spacing: 0px;
 
-        // App brand
+        // ── Brand ────────────────────────────────────────────────────
         Rectangle {
-            height: 48px;
+            height: 52px;
             HorizontalLayout {
                 padding-left: 6px;
+                spacing: 10px;
                 alignment: start;
+
+                // Two-pill logo mark (offset staircase)
+                Rectangle {
+                    width: 28px;
+                    height: 28px;
+                    // Top-left pill (dark blue)
+                    Rectangle {
+                        x: 0px; y: 3px;
+                        width: 16px; height: 7px;
+                        border-radius: 3px;
+                        background: #1d4ed8;
+                    }
+                    // Bottom-right pill (light blue)
+                    Rectangle {
+                        x: 11px; y: 16px;
+                        width: 16px; height: 7px;
+                        border-radius: 3px;
+                        background: #60a5fa;
+                    }
+                }
+
                 Text {
                     text: "OpenPlan";
                     font-size: 16px;
@@ -104,7 +128,7 @@ export component Sidebar inherits Rectangle {
             }
         }
 
-        // Primary nav
+        // ── Primary nav ───────────────────────────────────────────────
         VerticalLayout {
             spacing: 2px;
             NavItem {
@@ -127,24 +151,24 @@ export component Sidebar inherits Rectangle {
             }
         }
 
-        // Divider (use padding via a spacer + separator)
+        // ── Divider ───────────────────────────────────────────────────
         Rectangle { height: 8px; }
         Rectangle { height: 1px; background: Theme.border; }
         Rectangle { height: 8px; }
 
-        // Projects section
+        // ── Projects ──────────────────────────────────────────────────
         VerticalLayout {
             spacing: 2px;
 
             Text {
-                text: "Projects";
-                font-size: 11px;
+                text: "PROJECTS";
+                font-size: 10px;
                 font-weight: 600;
                 color: Theme.text-muted;
-                letter-spacing: 0.5px;
-                padding-left: 10px;
-                padding-bottom: 4px;
+                letter-spacing: 0.8px;
             }
+
+            Rectangle { height: 4px; }
 
             for proj in root.projects: ProjectItem {
                 name:      proj.name;
@@ -154,25 +178,58 @@ export component Sidebar inherits Rectangle {
             }
         }
 
-        // Spacer
+        // ── Spacer ────────────────────────────────────────────────────
         Rectangle { vertical-stretch: 1; }
 
-        // Divider
-        Rectangle { height: 8px; }
+        // ── Bottom bar ────────────────────────────────────────────────
         Rectangle { height: 1px; background: Theme.border; }
         Rectangle { height: 8px; }
 
-        // User + logout
         VerticalLayout {
-            spacing: 4px;
+            spacing: 2px;
 
-            if root.display-name != "": Text {
-                text: root.display-name;
-                font-size: 12px;
-                font-weight: 600;
-                color: Theme.text;
-                padding-left: 10px;
-                overflow: elide;
+            if root.display-name != "": Rectangle {
+                height: 28px;
+                HorizontalLayout {
+                    padding-left: 10px;
+                    alignment: start;
+                    Text {
+                        text: root.display-name;
+                        font-size: 12px;
+                        font-weight: 600;
+                        color: Theme.text;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+                }
+            }
+
+            // Theme toggle
+            theme-btn := Rectangle {
+                height: 30px;
+                border-radius: Theme.radius-sm;
+                background: theme-ta.has-hover ? Theme.bg-hover : transparent;
+                animate background { duration: 80ms; }
+                theme-ta := TouchArea { clicked => { root.toggle-theme(); } }
+
+                HorizontalLayout {
+                    padding-left: 10px;
+                    spacing: 8px;
+                    alignment: start;
+
+                    Text {
+                        text: root.theme-mode == 1 ? "☀" : (root.theme-mode == 2 ? "☾" : "⊙");
+                        font-size: 13px;
+                        color: Theme.text-secondary;
+                        vertical-alignment: center;
+                    }
+                    Text {
+                        text: root.theme-mode == 1 ? "Light" : (root.theme-mode == 2 ? "Dark" : "System");
+                        font-size: 12px;
+                        color: Theme.text-secondary;
+                        vertical-alignment: center;
+                    }
+                }
             }
 
             NavItem {

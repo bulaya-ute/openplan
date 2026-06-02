@@ -14,9 +14,16 @@ export component AppWindow inherits Window {
     preferred-height: 700px;
     background: Theme.bg;
 
-    // ── Auth / navigation ─────────────────────────────────────────
-    in-out property <string>  current-page: "login"; // "login" | "today" | "upcoming" | "inbox" | "project"
-    in-out property <string>  page-title:   "Today";  // set by Rust on every navigate()
+    // ── Theme ──────────────────────────────────────────────────────
+    // 0 = system, 1 = light, 2 = dark  (persisted in config)
+    in-out property <int> theme-mode: 0;
+    // Keep Theme global in sync whenever theme-mode changes
+    changed theme-mode => { Theme.mode = root.theme-mode; }
+    init => { Theme.mode = root.theme-mode; }
+
+    // ── Auth / navigation ──────────────────────────────────────────
+    in-out property <string>  current-page: "login";
+    in-out property <string>  page-title:   "Today";
     in-out property <string>  server-url:   "http://localhost:5000/api/v1";
     in-out property <string>  auth-email;
     in-out property <string>  auth-password;
@@ -25,39 +32,38 @@ export component AppWindow inherits Window {
     in-out property <string>  display-name: "";
     in-out property <string>  active-project-id: "";
 
-    // ── Task data ─────────────────────────────────────────────────
+    // ── Task data ──────────────────────────────────────────────────
     in-out property <[TaskData]>    tasks;
     in-out property <[ProjectData]> projects;
     in-out property <bool>          tasks-loading: false;
 
-    // ── Detail dialog ─────────────────────────────────────────────
+    // ── Detail dialog ──────────────────────────────────────────────
     in-out property <bool>     detail-open:  false;
     in-out property <TaskData> detail-task;
     in-out property <bool>     detail-saving: false;
     in-out property <string>   detail-error:  "";
 
-    // ── Add task dialog ───────────────────────────────────────────
+    // ── Add task dialog ────────────────────────────────────────────
     in-out property <bool>   add-open:       false;
     in-out property <string> add-project-id: "";
     in-out property <bool>   add-saving:     false;
     in-out property <string> add-error:      "";
 
-    // ── Callbacks → Rust ─────────────────────────────────────────
-    callback login-submit(string, string, string);   // server-url, email, password
+    // ── Callbacks → Rust ──────────────────────────────────────────
+    callback login-submit(string, string, string);
     callback logout();
-    callback navigate(string);                        // page name or "project:<id>"
-    callback tick-task(string);                       // task id
-    callback toggle-expand(string);                  // task id
-    callback open-detail(string);                    // task id
+    callback navigate(string);
+    callback tick-task(string);
+    callback toggle-expand(string);
+    callback open-detail(string);
     callback close-detail();
     callback save-task(string, string, string, string, string, string, string, string);
-    // id, title, desc, priority, status, task-type, start-at, due-at
-    callback open-add-task(string, string);          // project-id, parent-id
+    callback open-add-task(string, string);
     callback close-add-task();
     callback submit-add-task(string, string, string, string, string, string, string, string);
-    // title, desc, project-id, parent-id, priority, task-type, start-at, due-at
+    callback set-theme(int);
 
-    // ── Login view ────────────────────────────────────────────────
+    // ── Login view ─────────────────────────────────────────────────
     if root.current-page == "login": LoginPage {
         server-url: root.server-url;
         email:      root.auth-email;
@@ -65,8 +71,8 @@ export component AppWindow inherits Window {
         error:      root.auth-error;
         loading:    root.auth-loading;
         submit(url, email, pass) => {
-            root.server-url   = url;
-            root.auth-email   = email;
+            root.server-url    = url;
+            root.auth-email    = email;
             root.auth-password = pass;
             root.login-submit(url, email, pass);
         }
@@ -76,7 +82,6 @@ export component AppWindow inherits Window {
     if root.current-page != "login": HorizontalLayout {
         spacing: 0px;
 
-        // Sidebar
         Rectangle {
             width: Theme.sidebar-w;
             Sidebar {
@@ -85,22 +90,25 @@ export component AppWindow inherits Window {
                 projects:     root.projects;
                 active-page:  root.current-page;
                 display-name: root.display-name;
+                theme-mode:   root.theme-mode;
                 navigate(page) => { root.navigate(page); }
                 logout()       => { root.logout(); }
+                toggle-theme() => {
+                    // Cycle: system(0) → light(1) → dark(2) → system(0)
+                    root.theme-mode = mod(root.theme-mode + 1, 3);
+                    root.set-theme(root.theme-mode);
+                }
             }
         }
 
-        // Vertical divider
         Rectangle { width: 1px; background: Theme.border; }
 
-        // Content area
         Rectangle {
             horizontal-stretch: 1;
-
             TaskListPage {
                 width: parent.width;
                 height: parent.height;
-                title: root.page-title;
+                title:   root.page-title;
                 tasks:   root.tasks;
                 loading: root.tasks-loading;
                 tick(id)           => { root.tick-task(id); }
@@ -111,21 +119,21 @@ export component AppWindow inherits Window {
         }
     }
 
-    // ── Task detail dialog (overlay) ──────────────────────────────
+    // ── Task detail dialog (overlay) ───────────────────────────────
     if root.detail-open: TaskDetailDialog {
         x: 0; y: 0;
         width: root.width;
         height: root.height;
-        task:         root.detail-task;
-        saving:       root.detail-saving;
-        save-error:   root.detail-error;
-        close()       => { root.close-detail(); }
+        task:        root.detail-task;
+        saving:      root.detail-saving;
+        save-error:  root.detail-error;
+        close()      => { root.close-detail(); }
         save(title, desc, pri, status, tt, start, due) => {
             root.save-task(root.detail-task.id, title, desc, pri, status, tt, start, due);
         }
     }
 
-    // ── Add task dialog (overlay) ─────────────────────────────────
+    // ── Add task dialog (overlay) ──────────────────────────────────
     if root.add-open: AddTaskDialog {
         x: 0; y: 0;
         width: root.width;
@@ -138,5 +146,4 @@ export component AppWindow inherits Window {
             root.submit-add-task(title, desc, proj, parent, pri, tt, start, due);
         }
     }
-
 }

@@ -1,40 +1,51 @@
+import { Palette } from "std-widgets.slint";
+
 export global Theme {
+    // 0 = system, 1 = light, 2 = dark
+    in-out property <int> mode: 0;
+
+    out property <bool> dark:
+        root.mode == 2 ||
+        (root.mode == 0 && Palette.color-scheme == ColorScheme.dark);
+
     // Accent
-    out property <color> accent:        #3b82f6;
-    out property <color> accent-hover:  #2563eb;
-    out property <color> accent-light:  #eff6ff;
+    out property <color> accent:       #3b82f6;
+    out property <color> accent-hover: #2563eb;
+    out property <color> accent-light: dark ? #1e3a5f : #eff6ff;
 
     // Backgrounds
-    out property <color> bg:            #ffffff;
-    out property <color> bg-secondary:  #f9fafb;
-    out property <color> bg-sidebar:    #f3f4f6;
-    out property <color> bg-hover:      #f1f5f9;
-    out property <color> bg-input:      #ffffff;
+    out property <color> bg:           dark ? #111827 : #f9fafb;
+    out property <color> bg-card:      dark ? #1f2937 : #ffffff;
+    out property <color> bg-secondary: dark ? #0f172a : #f9fafb;
+    out property <color> bg-sidebar:   dark ? #111827 : #f3f4f6;
+    out property <color> bg-hover:     dark ? #374151 : #f1f5f9;
+    out property <color> bg-input:     dark ? #111827 : #ffffff;
 
     // Text
-    out property <color> text:          #111827;
-    out property <color> text-secondary: #6b7280;
-    out property <color> text-muted:    #9ca3af;
+    out property <color> text:           dark ? #f9fafb : #111827;
+    out property <color> text-secondary: dark ? #9ca3af : #6b7280;
+    out property <color> text-muted:     dark ? #6b7280 : #9ca3af;
     out property <color> text-on-accent: #ffffff;
 
     // Borders
-    out property <color> border:        #e5e7eb;
-    out property <color> border-focus:  #3b82f6;
+    out property <color> border:      dark ? #374151 : #e5e7eb;
+    out property <color> border-card: dark ? #374151 : #f3f4f6;
+    out property <color> border-focus: #3b82f6;
 
     // Priority colours
-    out property <color> p1:            #ef4444;
-    out property <color> p2:            #f97316;
-    out property <color> p3:            #3b82f6;
-    out property <color> p4:            #9ca3af;
+    out property <color> p1: #ef4444;
+    out property <color> p2: #f97316;
+    out property <color> p3: #3b82f6;
+    out property <color> p4: #9ca3af;
 
     // Status colours
-    out property <color> done:          #22c55e;
-    out property <color> cancelled:     #9ca3af;
+    out property <color> done:      #22c55e;
+    out property <color> cancelled: #9ca3af;
 
     // Layout
-    out property <length> sidebar-w:    220px;
-    out property <length> radius-sm:    6px;
-    out property <length> radius-md:    8px;
-    out property <length> radius-lg:    12px;
-    out property <length> row-h:        44px;
+    out property <length> sidebar-w: 220px;
+    out property <length> radius-sm: 6px;
+    out property <length> radius-md: 8px;
+    out property <length> radius-lg: 12px;
+    out property <length> row-h:     44px;
 }
