@@ -16,6 +16,7 @@ export component AppWindow inherits Window {
 
     // ── Auth / navigation ─────────────────────────────────────────
     in-out property <string>  current-page: "login"; // "login" | "today" | "upcoming" | "inbox" | "project"
+    in-out property <string>  page-title:   "Today";  // set by Rust on every navigate()
     in-out property <string>  server-url:   "http://localhost:5000/api/v1";
     in-out property <string>  auth-email;
     in-out property <string>  auth-password;
@@ -99,12 +100,7 @@ export component AppWindow inherits Window {
             TaskListPage {
                 width: parent.width;
                 height: parent.height;
-                title:
-                    root.current-page == "today"    ? "Today" :
-                    root.current-page == "upcoming" ? "Upcoming" :
-                    root.current-page == "inbox"    ? "Inbox" :
-                    root.current-page.starts-with("project:") ?
-                        project-name-for(root.active-project-id) : "";
+                title: root.page-title;
                 tasks:   root.tasks;
                 loading: root.tasks-loading;
                 tick(id)           => { root.tick-task(id); }
@@ -143,11 +139,4 @@ export component AppWindow inherits Window {
         }
     }
 
-    // Helper: look up project name by id
-    pure function project-name-for(id: string) -> string {
-        for p in root.projects: {
-            if p.id == id { return p.name; }
-        }
-        return "Project";
-    }
 }

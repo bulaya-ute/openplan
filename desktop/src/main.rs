@@ -262,7 +262,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let _ = ww.upgrade_in_event_loop({
                 let page_str = page_str.clone();
                 move |w| {
+                    let title: SharedString = match page_str.as_str() {
+                        "today"    => "Today".into(),
+                        "upcoming" => "Upcoming".into(),
+                        "inbox"    => "Inbox".into(),
+                        _          => "Project".into(), // refined after project list loads
+                    };
                     w.set_current_page(page_str.clone().into());
+                    w.set_page_title(title);
                     w.set_tasks_loading(true);
                 }
             });
@@ -300,6 +307,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     if let Ok(proj_list) = projects_result {
                         let mut st = state.lock().unwrap();
                         st.projects = proj_list;
+                        // Refine the project page title now that we have names
+                        if let Some(proj_id) = &st.current_project_id.clone() {
+                            if let Some(p) = st.projects.iter().find(|p| &p.id == proj_id) {
+                                w.set_page_title(p.name.clone().into());
+                            }
+                        }
                         let model = build_project_model(&st.projects);
                         w.set_projects(model);
                     }
