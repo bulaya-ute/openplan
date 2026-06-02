@@ -1,0 +1,149 @@
+import { LineEdit, Button } from "std-widgets.slint";
+import { Theme } from "../theme.slint";
+
+export component LoginPage inherits Rectangle {
+    background: Theme.bg-secondary;
+
+    in-out property <string> server-url: "http://localhost:5000/api/v1";
+    in-out property <string> email;
+    in-out property <string> password;
+    in property  <string> error: "";
+    in property  <bool>   loading: false;
+
+    callback submit(string, string, string); // server-url, email, password
+
+    VerticalLayout {
+        alignment: center;
+
+        Rectangle {
+            height: card.preferred-height + 64px;
+            HorizontalLayout {
+                alignment: center;
+                card := VerticalLayout {
+                    width: 360px;
+                    spacing: 20px;
+                    padding: 32px;
+
+                    // Header
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text {
+                            text: "OpenPlan";
+                            font-size: 22px;
+                            font-weight: 700;
+                            color: Theme.accent;
+                        }
+                        Text {
+                            text: "Sign in to your workspace";
+                            font-size: 13px;
+                            color: Theme.text-secondary;
+                        }
+                    }
+
+                    // Card body
+                    Rectangle {
+                        background: Theme.bg;
+                        border-radius: Theme.radius-lg;
+                        border-width: 1px;
+                        border-color: Theme.border;
+                        drop-shadow-blur: 12px;
+                        drop-shadow-color: #00000012;
+                        drop-shadow-offset-y: 2px;
+
+                        VerticalLayout {
+                            padding: 24px;
+                            spacing: 16px;
+
+                            // Server URL
+                            VerticalLayout {
+                                spacing: 6px;
+                                Text {
+                                    text: "Server URL";
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    color: Theme.text-secondary;
+                                }
+                                url-edit := LineEdit {
+                                    text: root.server-url;
+                                    placeholder-text: "http://localhost:5000/api/v1";
+                                    edited => { root.server-url = self.text; }
+                                }
+                            }
+
+                            // Email
+                            VerticalLayout {
+                                spacing: 6px;
+                                Text {
+                                    text: "Email";
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    color: Theme.text-secondary;
+                                }
+                                email-edit := LineEdit {
+                                    text: root.email;
+                                    placeholder-text: "you@example.com";
+                                    input-type: email;
+                                    edited => { root.email = self.text; }
+                                }
+                            }
+
+                            // Password
+                            VerticalLayout {
+                                spacing: 6px;
+                                Text {
+                                    text: "Password";
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    color: Theme.text-secondary;
+                                }
+                                pass-edit := LineEdit {
+                                    text: root.password;
+                                    placeholder-text: "••••••••";
+                                    input-type: password;
+                                    edited => { root.password = self.text; }
+                                    accepted => {
+                                        if (!root.loading) {
+                                            root.submit(root.server-url, root.email, root.password);
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Error
+                            if root.error != "": Text {
+                                text: root.error;
+                                font-size: 12px;
+                                color: #ef4444;
+                                wrap: word-wrap;
+                            }
+
+                            // Submit button
+                            Rectangle {
+                                height: 38px;
+                                border-radius: Theme.radius-md;
+                                background: root.loading ? Theme.accent-hover : Theme.accent;
+                                animate background { duration: 120ms; }
+
+                                btn-ta := TouchArea {
+                                    enabled: !root.loading;
+                                    clicked => {
+                                        root.submit(root.server-url, root.email, root.password);
+                                    }
+                                }
+
+                                Text {
+                                    text: root.loading ? "Signing in…" : "Sign in";
+                                    color: Theme.text-on-accent;
+                                    font-size: 13px;
+                                    font-weight: 600;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

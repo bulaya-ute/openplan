@@ -1,0 +1,27 @@
+// Shared data structs passed between Rust and Slint.
+
+export struct TaskData {
+    id:                    string,
+    title:                 string,
+    description:           string,
+    status:                string,   // "Scheduled" | "Active" | "Completed" | "Cancelled"
+    priority:              string,   // "P1" | "P2" | "P3" | "P4"
+    task-type:             string,   // "Sequential" | "Parallel"
+    progress:              float,    // 0.0 – 1.0
+    due-at:                string,   // ISO-8601 string (display only)
+    start-at:              string,
+    has-children:          bool,
+    child-count:           int,
+    completed-child-count: int,
+    next-child-title:      string,
+    depth:                 int,
+    is-expanded:           bool,
+    weight:                float,
+    project-id:            string,
+}
+
+export struct ProjectData {
+    id:    string,
+    name:  string,
+    color: string,
+}

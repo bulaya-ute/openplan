@@ -1,0 +1,150 @@
+import { Theme } from "../theme.slint";
+import { TaskData } from "../types.slint";
+
+export component TaskRow inherits Rectangle {
+    in property <TaskData> task;
+    in property <bool>     global-loading: false;
+
+    callback tick(string);
+    callback toggle-expand(string);
+    callback open-detail(string);
+
+    height: Theme.row-h;
+    background: ta.has-hover ? Theme.bg-hover : Theme.bg;
+    animate background { duration: 80ms; }
+
+    // Computed
+    property <bool> is-done:      task.status == "Completed";
+    property <bool> is-cancelled: task.status == "Cancelled";
+    property <bool> is-terminal:  is-done || is-cancelled;
+    property <color> priority-color:
+        task.priority == "P1" ? Theme.p1 :
+        task.priority == "P2" ? Theme.p2 :
+        task.priority == "P3" ? Theme.p3 : Theme.p4;
+
+    // Main touch area (open detail)
+    ta := TouchArea {
+        clicked => { root.open-detail(root.task.id); }
+    }
+
+    HorizontalLayout {
+        padding-left: 6px + task.depth * 20px;
+        padding-right: 8px;
+        spacing: 0px;
+        alignment: center-start;
+
+        // Expand toggle or spacer
+        Rectangle {
+            width: 24px;
+            height: Theme.row-h;
+
+            if root.task.has-children && root.task.depth == 0: expand-ta := TouchArea {
+                clicked => {
+                    root.toggle-expand(root.task.id);
+                    // stop propagation by consuming the event
+                }
+                Rectangle {
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 4px;
+                    background: expand-ta.has-hover ? Theme.border : transparent;
+                    Text {
+                        text: root.task.is-expanded ? "▾" : "▸";
+                        font-size: 10px;
+                        color: Theme.text-muted;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Checkbox / tick button
+        check-ta := TouchArea {
+            width: 28px;
+            height: Theme.row-h;
+            clicked => {
+                root.tick(root.task.id);
+                // stop propagation
+            }
+
+            Rectangle {
+                width: 16px;
+                height: 16px;
+                border-radius: 8px;
+                border-width: 1.5px;
+                border-color: root.is-done ? Theme.done
+                            : root.is-cancelled ? Theme.cancelled
+                            : check-ta.has-hover ? root.priority-color
+                            : Theme.border;
+                background: root.is-done ? Theme.done
+                          : root.is-cancelled ? Theme.cancelled
+                          : transparent;
+                animate background { duration: 120ms; }
+                animate border-color { duration: 120ms; }
+
+                if root.is-terminal: Text {
+                    text: root.is-done ? "✓" : "✕";
+                    font-size: 9px;
+                    color: Theme.text-on-accent;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Priority dot
+        Rectangle {
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background: root.is-terminal ? Theme.text-muted : root.priority-color;
+            margin-right: 8px;
+        }
+
+        // Title
+        Text {
+            text: root.task.title;
+            font-size: 13px;
+            color: root.is-terminal ? Theme.text-muted : Theme.text;
+            font-italic: root.is-cancelled;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+            overflow: elide;
+        }
+
+        // Progress ring (for parent tasks with children)
+        if root.task.has-children && !root.is-terminal: Rectangle {
+            width: 36px;
+            height: Theme.row-h;
+            HorizontalLayout {
+                alignment: center;
+                Text {
+                    text: root.task.completed-child-count + "/" + root.task.child-count;
+                    font-size: 10px;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Due date
+        if root.task.due-at != "": Rectangle {
+            width: 80px;
+            Text {
+                text: root.task.due-at;
+                font-size: 11px;
+                color: Theme.text-muted;
+                horizontal-alignment: right;
+                vertical-alignment: center;
+            }
+        }
+    }
+
+    // Bottom border
+    Rectangle {
+        y: parent.height - 1px;
+        height: 1px;
+        background: Theme.border;
+    }
+}

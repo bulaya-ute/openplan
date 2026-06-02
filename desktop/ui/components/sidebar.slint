@@ -1,0 +1,185 @@
+import { Theme } from "../theme.slint";
+import { ProjectData } from "../types.slint";
+
+component NavItem inherits Rectangle {
+    in property <string> label;
+    in property <bool>   active: false;
+    in property <string> icon;
+
+    callback clicked();
+
+    height: 34px;
+    border-radius: Theme.radius-sm;
+    background: active ? Theme.accent-light : transparent;
+    animate background { duration: 100ms; }
+
+    ta := TouchArea { clicked => { root.clicked(); } }
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 8px;
+        alignment: center-start;
+
+        Text {
+            text: icon;
+            font-size: 14px;
+            color: active ? Theme.accent : Theme.text-secondary;
+            vertical-alignment: center;
+        }
+        Text {
+            text: label;
+            font-size: 13px;
+            font-weight: active ? 600 : 400;
+            color: active ? Theme.accent : Theme.text;
+            vertical-alignment: center;
+        }
+    }
+}
+
+component ProjectItem inherits Rectangle {
+    in property <string> name;
+    in property <string> color;
+    in property <bool>   active: false;
+
+    callback clicked();
+
+    height: 30px;
+    border-radius: Theme.radius-sm;
+    background: active ? Theme.accent-light : transparent;
+    animate background { duration: 100ms; }
+
+    ta := TouchArea { clicked => { root.clicked(); } }
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 8px;
+        alignment: center-start;
+
+        // Colour dot
+        Rectangle {
+            width: 8px;
+            height: 8px;
+            border-radius: 4px;
+            background: Colors.from-argb-encoded(root.active
+                ? 0xff3b82f6
+                : 0xff6b7280);
+        }
+        Text {
+            text: name;
+            font-size: 13px;
+            color: active ? Theme.accent : Theme.text;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+}
+
+export component Sidebar inherits Rectangle {
+    background: Theme.bg-sidebar;
+    border-width: 0;
+
+    in property <[ProjectData]> projects;
+    in property <string>        active-page;
+    in property <string>        display-name;
+
+    callback navigate(string);
+    callback logout();
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 0px;
+
+        // App brand
+        Rectangle {
+            height: 48px;
+            HorizontalLayout {
+                padding-left: 6px;
+                alignment: center-start;
+                Text {
+                    text: "OpenPlan";
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: Theme.accent;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Primary nav
+        VerticalLayout {
+            spacing: 2px;
+            NavItem {
+                label: "Today";
+                icon: "◈";
+                active: root.active-page == "today";
+                clicked => { root.navigate("today"); }
+            }
+            NavItem {
+                label: "Upcoming";
+                icon: "◷";
+                active: root.active-page == "upcoming";
+                clicked => { root.navigate("upcoming"); }
+            }
+            NavItem {
+                label: "Inbox";
+                icon: "⊡";
+                active: root.active-page == "inbox";
+                clicked => { root.navigate("inbox"); }
+            }
+        }
+
+        // Divider
+        Rectangle { height: 1px; background: Theme.border; margin-top: 8px; margin-bottom: 8px; }
+
+        // Projects section
+        VerticalLayout {
+            spacing: 2px;
+
+            Text {
+                text: "Projects";
+                font-size: 11px;
+                font-weight: 600;
+                color: Theme.text-muted;
+                letter-spacing: 0.5px;
+                padding-left: 10px;
+                padding-bottom: 4px;
+            }
+
+            for proj in root.projects: ProjectItem {
+                name:   proj.name;
+                color:  proj.color;
+                active: root.active-page == "project:" + proj.id;
+                clicked => { root.navigate("project:" + proj.id); }
+            }
+        }
+
+        // Spacer
+        Rectangle { vertical-stretch: 1; }
+
+        // Divider
+        Rectangle { height: 1px; background: Theme.border; margin-bottom: 8px; }
+
+        // User + logout
+        VerticalLayout {
+            spacing: 4px;
+
+            if root.display-name != "": Text {
+                text: root.display-name;
+                font-size: 12px;
+                font-weight: 600;
+                color: Theme.text;
+                padding-left: 10px;
+                overflow: elide;
+            }
+
+            NavItem {
+                label: "Sign out";
+                icon: "↩";
+                active: false;
+                clicked => { root.logout(); }
+            }
+        }
+    }
+}

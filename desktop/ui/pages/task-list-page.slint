@@ -1,0 +1,119 @@
+// Shared task-list page layout used by Today, Upcoming, Inbox, and Project views.
+import { Theme } from "../theme.slint";
+import { TaskData } from "../types.slint";
+import { TaskRow } from "../components/task-row.slint";
+
+export component TaskListPage inherits Rectangle {
+    background: Theme.bg;
+
+    in property <string>     title;
+    in property <[TaskData]> tasks;
+    in property <bool>       loading: false;
+    in property <string>     group-by: "none"; // "none" or "date"
+
+    callback tick(string);
+    callback toggle-expand(string);
+    callback open-detail(string);
+    callback add-task();
+
+    VerticalLayout {
+        // Page header
+        Rectangle {
+            height: 60px;
+            background: Theme.bg;
+            border-width: 0;
+
+            HorizontalLayout {
+                padding-left: 28px;
+                padding-right: 28px;
+                spacing: 12px;
+                alignment: center-start;
+
+                Text {
+                    text: root.title;
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: Theme.text;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                }
+            }
+        }
+
+        // Thin rule
+        Rectangle { height: 1px; background: Theme.border; }
+
+        if root.loading: Rectangle {
+            vertical-stretch: 1;
+            Text {
+                text: "Loading…";
+                color: Theme.text-muted;
+                font-size: 13px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        if !root.loading: ScrollView {
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                padding-left: 20px;
+                padding-right: 20px;
+                padding-top: 8px;
+                padding-bottom: 24px;
+
+                // Empty state
+                if root.tasks.length == 0: Rectangle {
+                    height: 80px;
+                    Text {
+                        text: "No tasks here.";
+                        color: Theme.text-muted;
+                        font-size: 13px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                for task in root.tasks: TaskRow {
+                    task: task;
+                    tick(id) => { root.tick(id); }
+                    toggle-expand(id) => { root.toggle-expand(id); }
+                    open-detail(id) => { root.open-detail(id); }
+                }
+
+                // Add task button
+                add-btn := Rectangle {
+                    height: 36px;
+                    border-radius: Theme.radius-sm;
+                    background: add-ta.has-hover ? Theme.bg-hover : transparent;
+                    animate background { duration: 80ms; }
+                    margin-top: 4px;
+
+                    add-ta := TouchArea {
+                        clicked => { root.add-task(); }
+                    }
+
+                    HorizontalLayout {
+                        padding-left: 8px;
+                        spacing: 6px;
+                        alignment: center-start;
+
+                        Text {
+                            text: "+";
+                            font-size: 16px;
+                            color: add-ta.has-hover ? Theme.accent : Theme.text-muted;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: "Add task";
+                            font-size: 13px;
+                            color: add-ta.has-hover ? Theme.accent : Theme.text-muted;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,153 @@
+import { Theme } from "theme.slint";
+import { TaskData, ProjectData } from "types.slint";
+import { LoginPage } from "components/login-page.slint";
+import { Sidebar } from "components/sidebar.slint";
+import { TaskListPage } from "pages/task-list-page.slint";
+import { TaskDetailDialog } from "components/task-detail-dialog.slint";
+import { AddTaskDialog } from "components/add-task-dialog.slint";
+
+export component AppWindow inherits Window {
+    title: "OpenPlan";
+    min-width: 900px;
+    min-height: 600px;
+    preferred-width: 1100px;
+    preferred-height: 700px;
+    background: Theme.bg;
+
+    // ── Auth / navigation ─────────────────────────────────────────
+    in-out property <string>  current-page: "login"; // "login" | "today" | "upcoming" | "inbox" | "project"
+    in-out property <string>  server-url:   "http://localhost:5000/api/v1";
+    in-out property <string>  auth-email;
+    in-out property <string>  auth-password;
+    in-out property <string>  auth-error:   "";
+    in-out property <bool>    auth-loading: false;
+    in-out property <string>  display-name: "";
+    in-out property <string>  active-project-id: "";
+
+    // ── Task data ─────────────────────────────────────────────────
+    in-out property <[TaskData]>    tasks;
+    in-out property <[ProjectData]> projects;
+    in-out property <bool>          tasks-loading: false;
+
+    // ── Detail dialog ─────────────────────────────────────────────
+    in-out property <bool>     detail-open:  false;
+    in-out property <TaskData> detail-task;
+    in-out property <bool>     detail-saving: false;
+    in-out property <string>   detail-error:  "";
+
+    // ── Add task dialog ───────────────────────────────────────────
+    in-out property <bool>   add-open:       false;
+    in-out property <string> add-project-id: "";
+    in-out property <bool>   add-saving:     false;
+    in-out property <string> add-error:      "";
+
+    // ── Callbacks → Rust ─────────────────────────────────────────
+    callback login-submit(string, string, string);   // server-url, email, password
+    callback logout();
+    callback navigate(string);                        // page name or "project:<id>"
+    callback tick-task(string);                       // task id
+    callback toggle-expand(string);                  // task id
+    callback open-detail(string);                    // task id
+    callback close-detail();
+    callback save-task(string, string, string, string, string, string, string, string);
+    // id, title, desc, priority, status, task-type, start-at, due-at
+    callback open-add-task(string, string);          // project-id, parent-id
+    callback close-add-task();
+    callback submit-add-task(string, string, string, string, string, string, string, string);
+    // title, desc, project-id, parent-id, priority, task-type, start-at, due-at
+
+    // ── Login view ────────────────────────────────────────────────
+    if root.current-page == "login": LoginPage {
+        server-url: root.server-url;
+        email:      root.auth-email;
+        password:   root.auth-password;
+        error:      root.auth-error;
+        loading:    root.auth-loading;
+        submit(url, email, pass) => {
+            root.server-url   = url;
+            root.auth-email   = email;
+            root.auth-password = pass;
+            root.login-submit(url, email, pass);
+        }
+    }
+
+    // ── Main app (sidebar + content) ──────────────────────────────
+    if root.current-page != "login": HorizontalLayout {
+        spacing: 0px;
+
+        // Sidebar
+        Rectangle {
+            width: Theme.sidebar-w;
+            Sidebar {
+                width: Theme.sidebar-w;
+                height: parent.height;
+                projects:     root.projects;
+                active-page:  root.current-page;
+                display-name: root.display-name;
+                navigate(page) => { root.navigate(page); }
+                logout()       => { root.logout(); }
+            }
+        }
+
+        // Vertical divider
+        Rectangle { width: 1px; background: Theme.border; }
+
+        // Content area
+        Rectangle {
+            horizontal-stretch: 1;
+
+            TaskListPage {
+                width: parent.width;
+                height: parent.height;
+                title:
+                    root.current-page == "today"    ? "Today" :
+                    root.current-page == "upcoming" ? "Upcoming" :
+                    root.current-page == "inbox"    ? "Inbox" :
+                    root.current-page.starts-with("project:") ?
+                        project-name-for(root.active-project-id) : "";
+                tasks:   root.tasks;
+                loading: root.tasks-loading;
+                tick(id)           => { root.tick-task(id); }
+                toggle-expand(id)  => { root.toggle-expand(id); }
+                open-detail(id)    => { root.open-detail(id); }
+                add-task()         => { root.open-add-task(root.active-project-id, ""); }
+            }
+        }
+    }
+
+    // ── Task detail dialog (overlay) ──────────────────────────────
+    if root.detail-open: TaskDetailDialog {
+        x: 0; y: 0;
+        width: root.width;
+        height: root.height;
+        task:         root.detail-task;
+        saving:       root.detail-saving;
+        save-error:   root.detail-error;
+        close()       => { root.close-detail(); }
+        save(title, desc, pri, status, tt, start, due) => {
+            root.save-task(root.detail-task.id, title, desc, pri, status, tt, start, due);
+        }
+    }
+
+    // ── Add task dialog (overlay) ─────────────────────────────────
+    if root.add-open: AddTaskDialog {
+        x: 0; y: 0;
+        width: root.width;
+        height: root.height;
+        project-id: root.add-project-id;
+        saving:     root.add-saving;
+        save-error: root.add-error;
+        close()    => { root.close-add-task(); }
+        submit(title, desc, proj, parent, pri, tt, start, due) => {
+            root.submit-add-task(title, desc, proj, parent, pri, tt, start, due);
+        }
+    }
+
+    // Helper: look up project name by id
+    pure function project-name-for(id: string) -> string {
+        for p in root.projects: {
+            if p.id == id { return p.name; }
+        }
+        return "Project";
+    }
+}
