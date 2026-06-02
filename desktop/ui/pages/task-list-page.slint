@@ -27,7 +27,7 @@ export component TaskListPage inherits Rectangle {
                 padding-left: 28px;
                 padding-right: 28px;
                 spacing: 12px;
-                alignment: center-start;
+                alignment: start;
 
                 Text {
                     text: root.title;
@@ -82,13 +82,15 @@ export component TaskListPage inherits Rectangle {
                     open-detail(id) => { root.open-detail(id); }
                 }
 
+                // Spacer before add button
+                Rectangle { height: 4px; }
+
                 // Add task button
                 add-btn := Rectangle {
                     height: 36px;
                     border-radius: Theme.radius-sm;
                     background: add-ta.has-hover ? Theme.bg-hover : transparent;
                     animate background { duration: 80ms; }
-                    margin-top: 4px;
 
                     add-ta := TouchArea {
                         clicked => { root.add-task(); }
@@ -97,7 +99,7 @@ export component TaskListPage inherits Rectangle {
                     HorizontalLayout {
                         padding-left: 8px;
                         spacing: 6px;
-                        alignment: center-start;
+                        alignment: start;
 
                         Text {
                             text: "+";

@@ -31,7 +31,7 @@ export component TaskRow inherits Rectangle {
         padding-left: 6px + task.depth * 20px;
         padding-right: 8px;
         spacing: 0px;
-        alignment: center-start;
+        alignment: start;
 
         // Expand toggle or spacer
         Rectangle {
@@ -93,14 +93,14 @@ export component TaskRow inherits Rectangle {
             }
         }
 
-        // Priority dot
+        // Priority dot + gap
         Rectangle {
             width: 6px;
             height: 6px;
             border-radius: 3px;
             background: root.is-terminal ? Theme.text-muted : root.priority-color;
-            margin-right: 8px;
         }
+        Rectangle { width: 8px; }
 
         // Title
         Text {
