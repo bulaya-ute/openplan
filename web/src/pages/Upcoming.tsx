@@ -50,11 +50,14 @@ export default function Upcoming() {
       )}
 
       {groups.map(({ date, label, tasks: dayTasks }) => (
-        <div key={date} className="mb-7">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
-            {label}
-          </h2>
-          <div className="space-y-0.5">
+        <div key={date} className="mb-8">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap">
+              {label}
+            </span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="space-y-0">
             {dayTasks.map((task) => (
               <TaskRow key={task.id} task={task} />
             ))}

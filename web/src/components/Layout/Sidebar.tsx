@@ -5,6 +5,7 @@ import { useThemeStore, type Theme } from '../../store/theme';
 import { CalendarDays, Inbox, CalendarRange, LogOut, Plus, Sun, Moon, Monitor } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createProject } from '../../api/projects';
+import Logo from '../Logo';
 
 const THEME_OPTIONS: { value: Theme; icon: React.ElementType; label: string }[] = [
   { value: 'system', icon: Monitor, label: 'System' },
@@ -42,8 +43,11 @@ export default function Sidebar() {
     <aside className="w-56 flex-shrink-0 flex flex-col h-full border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-4 gap-0.5">
       {/* Logo / user */}
       <div className="px-2 mb-4">
-        <span className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">OpenPlan</span>
-        <p className="text-xs text-gray-400 truncate mt-0.5">{user?.email}</p>
+        <div className="flex items-center gap-2 mb-0.5">
+          <Logo size={28} />
+          <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">OpenPlan</span>
+        </div>
+        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
       </div>
 
       <NavLink to="/today" className={navClass}>

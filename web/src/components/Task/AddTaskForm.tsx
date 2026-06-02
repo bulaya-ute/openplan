@@ -15,14 +15,10 @@ export default function AddTaskForm({ parentId, projectId, depth = 0, onClose }:
   const [title, setTitle] = useState('');
   const [taskType, setTaskType] = useState<TaskType>('Parallel');
   const [priority, setPriority] = useState<Priority>('P4');
-  const [startAt, setStartAt] = useState(() => {
-    const d = new Date();
-    d.setHours(9, 0, 0, 0);
-    return format(d, "yyyy-MM-dd'T'HH:mm");
-  });
+  const [startAt, setStartAt] = useState(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [dueAt, setDueAt] = useState(() => {
     const d = new Date();
-    d.setHours(17, 0, 0, 0);
+    d.setHours(23, 59, 0, 0);
     return format(d, "yyyy-MM-dd'T'HH:mm");
   });
   const [saving, setSaving] = useState(false);

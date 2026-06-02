@@ -26,7 +26,7 @@ export default function TaskList({ tasks, loading, title, projectId }: Props) {
     <div className="max-w-2xl mx-auto px-6 py-8">
       <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-6">{title}</h1>
 
-      <div className="space-y-0.5">
+      <div className="space-y-0">
         {tasks.map((task) => (
           <TaskRow key={task.id} task={task} />
         ))}
