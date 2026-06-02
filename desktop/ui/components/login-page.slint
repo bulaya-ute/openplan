@@ -82,7 +82,6 @@ export component LoginPage inherits Rectangle {
                                 email-edit := LineEdit {
                                     text: root.email;
                                     placeholder-text: "you@example.com";
-                                    input-type: email;
                                     edited => { root.email = self.text; }
                                 }
                             }
@@ -99,7 +98,7 @@ export component LoginPage inherits Rectangle {
                                 pass-edit := LineEdit {
                                     text: root.password;
                                     placeholder-text: "••••••••";
-                                    input-type: password;
+                                    input-type: InputType.password;
                                     edited => { root.password = self.text; }
                                     accepted => {
                                         if (!root.loading) {

@@ -62,9 +62,7 @@ component ProjectItem inherits Rectangle {
             width: 8px;
             height: 8px;
             border-radius: 4px;
-            background: Colors.from-argb-encoded(root.active
-                ? 0xff3b82f6
-                : 0xff6b7280);
+            background: root.active ? #3b82f6 : #6b7280;
         }
         Text {
             text: name;
