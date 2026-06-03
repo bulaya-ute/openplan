@@ -11,7 +11,7 @@ export default function AppLayout() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#0d1117] text-gray-900 dark:text-white">
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Outlet />
