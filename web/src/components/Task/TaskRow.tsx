@@ -194,8 +194,8 @@ export default function TaskRow({ task, depth = 0 }: Props) {
   // Root tasks are wrapped in a white card that contains their children
   if (isRoot) {
     return (
-      <div className={`mb-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm dark:shadow-lg dark:shadow-black/40 overflow-hidden ${
-        task.status === 'Active' ? 'shadow-blue-100 dark:shadow-blue-950/60' : ''
+      <div className={`mb-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-transparent shadow-sm dark:shadow-md dark:shadow-black/20 overflow-hidden ${
+        task.status === 'Active' ? 'shadow-blue-100 dark:shadow-blue-900/30' : ''
       }`}>
         {row}
 

@@ -37,9 +37,9 @@ export component TaskRow inherits Rectangle {
         border-bottom-right-radius: root.task.is-card-bottom ? Theme.radius-lg : 0;
 
         // Shadow anchored at the card top row so it casts downward into the card body
-        drop-shadow-blur:     root.task.is-card-top ? (Theme.dark ? 12px : 4px) : 0px;
-        drop-shadow-color:    Theme.dark ? #00000070 : #00000018;
-        drop-shadow-offset-y: root.task.is-card-top ? 4px : 0px;
+        drop-shadow-blur:     root.task.is-card-top ? (Theme.dark ? 8px : 4px) : 0px;
+        drop-shadow-color:    Theme.dark ? #00000045 : #00000015;
+        drop-shadow-offset-y: root.task.is-card-top ? 3px : 0px;
 
         // Main touch area (open detail)
         ta := TouchArea {
