@@ -27,7 +27,11 @@ public class TaskService(AppDbContext db)
             _ => query
         };
 
-        var tasks = await query.OrderBy(t => t.SortOrder).ThenBy(t => t.DueAt).ToListAsync();
+        var tasks = await query
+            .OrderBy(t => t.DueAt == DateTimeOffset.MinValue)   // tasks with a due date first
+            .ThenBy(t => t.DueAt)                               // closest due date first
+            .ThenBy(t => (int)t.Priority)                       // P1 before P4 within same date
+            .ToListAsync();
         await LoadChildrenRecursiveAsync(tasks);
         return tasks.Select(MapToResponse).ToList();
     }
@@ -36,7 +40,9 @@ public class TaskService(AppDbContext db)
     {
         var tasks = await db.Tasks
             .Where(t => t.OwnerId == userId && t.ProjectId == projectId && t.ParentId == null)
-            .OrderBy(t => t.SortOrder)
+            .OrderBy(t => t.DueAt == DateTimeOffset.MinValue)
+            .ThenBy(t => t.DueAt)
+            .ThenBy(t => (int)t.Priority)
             .ToListAsync();
 
         await LoadChildrenRecursiveAsync(tasks);
